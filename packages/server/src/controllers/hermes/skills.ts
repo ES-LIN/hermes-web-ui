@@ -421,6 +421,11 @@ export async function usageStats(ctx: any) {
   try {
     ctx.body = await getSkillUsageStatsFromDb(days, undefined, requestedProfile(ctx))
   } catch (err: any) {
+    // Database file may not exist yet (agent not run); return empty stats
+    if (err.message?.includes('unable to open database file') || err.code === 'SQLITE_CANTOPEN') {
+      ctx.body = { skills: [], summary: { total_use: 0, total_view: 0, unique_skills: 0 } }
+      return
+    }
     ctx.status = 500
     ctx.body = { error: `Failed to read skill usage stats: ${err.message}` }
   }
@@ -546,3 +551,4 @@ export async function pin_(ctx: any) {
     ctx.body = { error: err.message }
   }
 }
+
