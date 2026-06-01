@@ -3,23 +3,18 @@ import { spawnHermesWithBin } from './hermes-process'
 import { createWriteStream, mkdirSync, existsSync } from 'fs'
 import { dirname } from 'path'
 import { botLogFile, botLogger } from '../logger'
+import type { Stream } from 'stream'
 
-function createBotLogStream(): NodeJS.WritableStream {
+function createBotLogStream(): Stream | 'ignore' {
   try {
     const dir = dirname(botLogFile)
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true })
     }
-    const stream = createWriteStream(botLogFile, { flags: 'a' })
-    // Verify the stream opened successfully
-    if (stream.fd === null || stream.fd === undefined) {
-      botLogger.warn('[gateway] bot.log stream fd is null, falling back to ignore')
-      return 'ignore' as any
-    }
-    return stream
+    return createWriteStream(botLogFile, { flags: 'a' }) as unknown as Stream
   } catch (err) {
     botLogger.warn({ err }, '[gateway] failed to open bot.log, falling back to ignore')
-    return 'ignore' as any
+    return 'ignore'
   }
 }
 

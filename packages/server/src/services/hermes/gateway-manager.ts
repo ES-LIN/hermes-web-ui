@@ -35,6 +35,7 @@ import { promisify } from 'util'
 import { createServer } from 'net'
 import yaml from 'js-yaml'
 import { botLogFile, botLogger, logger } from '../logger'
+import type { Stream } from 'stream'
 import { dirname } from 'path'
 import { detectHermesHome, getHermesBin } from './hermes-path'
 import { execHermesWithBin, spawnHermesWithBin } from './hermes-process'
@@ -575,12 +576,11 @@ export class GatewayManager {
     return new Promise((resolve, reject) => {
       const env = buildGatewayProcessEnv(name, hermesHome)
       const detachGateway = shouldDetachGatewayProcess()
-      let botLog: any = 'ignore'
+      let botLog: Stream | 'ignore' = 'ignore'
       try {
         const logDir = dirname(botLogFile)
         if (!existsSync(logDir)) mkdirSync(logDir, { recursive: true })
-        const stream = createWriteStream(botLogFile, { flags: 'a' })
-        botLog = stream.fd !== null && stream.fd !== undefined ? stream : 'ignore'
+        botLog = createWriteStream(botLogFile, { flags: 'a' }) as unknown as Stream
       } catch (err) {
         logger.warn({ err }, '[gateway] failed to open bot.log, falling back to ignore')
       }
@@ -938,4 +938,5 @@ export class GatewayManager {
     }
   }
 }
+
 
